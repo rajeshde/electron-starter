@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-const { app, dialog } = window.require("electron").remote;
+const { app, dialog, BrowserWindow } = window.require("electron").remote;
 const fs = require("fs");
 const { resolve } = require("path");
 
@@ -37,24 +37,47 @@ const App = () => {
   const onClickAddFile = () => onClickSave(false);
 
   const onClickSave = (isNewContentDirectory) => {
-    dialog.showSaveDialog(
-      { title: "Create magic", options: { defaultPath: selectedFolder } },
-      (fileName) => {
-        console.log(fileName);
-        if (fileName) {
-          if (isNewContentDirectory) {
-            fs.mkdir(fileName, (error) => {
-              if (error) {
-                console.log("error in creating", error);
-              }
-            });
-          } else {
-            const writeStream = fs.createWriteStream(fileName);
-            writeStream.end();
-          }
+    // dialog.showSaveDialogSync(
+    //   BrowserWindow,
+    //   { properties: ["createDirectory"] },
+    //   (filePath) => {
+    //     // if (canceled) {
+    //     //   console.log("user cancelled");
+    //     // } else {
+    //     console.log(filePath);
+    //     if (filePath) {
+    //       if (isNewContentDirectory) {
+    //         console.log("making directory");
+    //         fs.mkdir(filePath, (error) => {
+    //           if (error) {
+    //             console.log("error in creating", error);
+    //           }
+    //         });
+    //       } else {
+    //         console.log("making file");
+    //         const writeStream = fs.createWriteStream(filePath);
+    //         writeStream.end();
+    //       }
+    //     }
+    //     // }
+    //   }
+    // );
+
+    if (isNewContentDirectory) {
+      console.log("making directory");
+      fs.mkdir(`${selectedFolder}/${newContentName}`, (error) => {
+        if (error) {
+          console.log("error in creating", error);
         }
-      }
-    );
+      });
+    } else {
+      console.log("making file");
+      const writeStream = fs.createWriteStream(
+        `${selectedFolder}/${newContentName}`
+      );
+      writeStream.end();
+    }
+    // }
   };
 
   return (
@@ -83,19 +106,25 @@ const App = () => {
               </li>
             ))}
           </ul>
+          <div>Present directory {selectedFolder}</div>
           <div>
-            Present directory {selectedFolder}
+            <input
+              value={newContentName}
+              onChange={(e) => setNewContentName(e.target.value)}
+              type="text"
+              style={{
+                width: "150px",
+                height: "50px",
+                marginLeft: "20px",
+                border: "1px solid #000",
+              }}
+            />
             <button onClick={onClickAddFolder} type="button">
               Add folder
             </button>
             <button onClick={onClickAddFile} type="button">
               Add file
             </button>
-            {/* <input
-              value={newContentName}
-              onChange={(e) => setNewContentName(e.target.value)}
-              type="text"
-            /> */}
             {/* {newContentName.length ? (
               <button onClick={onClickSave} type="button">
                 Save
